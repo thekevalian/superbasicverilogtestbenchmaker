@@ -5,6 +5,8 @@ MOTIVATION:
 
 LINKED TO boost
 
+This currently only supports single bit inputs, NOT BIT VECTORS
+
 General Function Call
 verilogtestBench [output_file] [num_inputs] [num_outputs] [input_feed_opt] [input]
 
@@ -27,3 +29,4 @@ input_feed_opt and input:
 I need a class that basically takes my inputs and converts it into how it wants it
 so, for efficiency, assuming i store my results in bitsets and ideally, i would use m*2^(n-3) bytes
 
+each input will become a reg and each output will become a wire

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <boost/dynamic_bitset.hpp>
 #include <vector>
+#include <math.h>
 
 typedef enum{
 	EXECUTABLE_NAME = 0,
@@ -49,18 +50,80 @@ int main(int argc, char** argv){
 		}
 	}		
 
-	if(module_name.empty()) module_name = std::string("tb_default");
-
+	if(module_name.empty()) module_name = std::string("default");
+	std::string output_tb_file_name = std::string("tb_").append(module_name).append(".v");
 	/* Check if file exists, if it does error*/
-	std::ifstream potential_tb_file(module_name);
+	std::ifstream potential_tb_file(output_tb_file_name);
 	if(potential_tb_file.good()){
 		std::cout << "Output File Already Exists! Please remove before running\n";
 		return EXIT_OUTPUT_FILE_ALREADY_EXISTS;
 	}
 
-	// std::ofstream output_tb_file;
-	// output_tb_file.open(module_name);
-	// output_tb_file.close();
+	std::ofstream output_tb_file;
+	output_tb_file.open(output_tb_file_name);
+
+	output_tb_file << "`timescale 1ns / 1ps\n\n";
+	output_tb_file << "module " << module_name << ";\n";
+	output_tb_file << "\t// Inputs, defined as registers\n";
+	output_tb_file << "reg ";
+	std::string input_prefix("in");
+	for(int i = 0; i < inputs; i++){
+		if(i == inputs - 1){
+			output_tb_file << input_prefix << i << ";\n\n";
+			break;
+		}
+		output_tb_file << input_prefix << i << ", ";
+	}
+
+	output_tb_file << "\t// Outputs, defined as wires\n";
+	std::string output_prefix("out");
+	output_tb_file << "wire ";
+	for(int j = 0 ; j< outputs; j++){
+		if(j == outputs - 1){
+			output_tb_file << output_prefix << j << ";\n\n";
+			break;
+		}
+		output_tb_file << output_prefix << j << ", ";
+	}
+
+	    
+    output_tb_file << "\t// Instantiate the UUT (unit under test)\n";
+	output_tb_file << "\t"<< module_name << " uut(\n";
+	for(int i = 0; i< inputs; i++){
+		output_tb_file << "\t" << input_prefix << i << ",\n";
+	}
+	for(int j = 0; j< outputs; j++){
+		if(j == outputs-1){
+			output_tb_file << "\t" << output_prefix << j << "\n);\n";
+			break;
+		}
+		output_tb_file << "\t" << output_prefix << j << ",\n";
+	}
+
+	output_tb_file << "\tinitial begin\n\n";
+
+	// Initialize Inputs
+	output_tb_file << "\t // Initialize Inputs\n";
+	for(int i = 0; i< inputs; i++){
+		output_tb_file << "\t" << input_prefix << i << " = 0;\n";
+	}
+	output_tb_file << "\t" << "#50;\n";
+	
+	unsigned long long iterations = powl(2, (long unsigned)inputs);
+	for(long long unsigned i = 0; i< iterations;i++){
+		output_tb_file << "\n";
+		for(int j = 0; j<inputs;j++){
+			output_tb_file << "\t" << input_prefix << i << " = " << ((i>>(inputs-1-j))&1) << ";\n";
+		}
+		
+		output_tb_file << "\t$display(\"TC" << i << "\");\n";
+		for(int j = 0; j< outputs; j++){
+			output_tb_file << "\tif ( " << output_prefix << j << " != " << "1'b" << output_arr[j].test(iterations-i-1) << " ) $display(\"Result is wrong\");\n";
+			
+		}
+		output_tb_file << "\t" << "#50;\n";
+	}
+	output_tb_file.close();
 
 	return EXIT_SUCCESSFUL;
 }

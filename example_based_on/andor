@@ -1,0 +1,13 @@
+`timescale 1ns / 1ps
+
+module decoder(
+    input a,
+    input b,
+    output c,
+    output d
+    );
+    
+    and a0(c, a, b);
+    or o0(d, a, b);
+    
+endmodule
