@@ -1,4 +1,5 @@
-IN PROGRESS with 0
+input_feed_opt 0 and 1 are supported
+Overhaul of the whole thing in a new branch coming soon
 
 MOTIVATION:
 	tired of copy pasting to check if program works correctly in Vivado
@@ -6,9 +7,10 @@ MOTIVATION:
 LINKED TO boost
 
 This currently only supports single bit inputs, NOT BIT VECTORS
+Not great error handling.
 
 General Function Call
-verilogtestBench [output_file] [num_inputs] [num_outputs] [input_feed_opt] [input]
+./verilogtestBench [output_file] [num_inputs] [num_outputs] [input_feed_opt] [input]
 
 output_file - name of testbench file with inputs in order
 num_inputs - Number of Inputs going into the module

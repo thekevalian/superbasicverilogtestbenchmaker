@@ -21,7 +21,8 @@ typedef enum{
 	EXIT_SUCCESSFUL,
 	EXIT_NOT_ENOUGH_INPUTS,
 	EXIT_INPUT_TYPE_NOT_SUPPORTED,
-	EXIT_OUTPUT_FILE_ALREADY_EXISTS
+	EXIT_OUTPUT_FILE_ALREADY_EXISTS,
+	EXIT_NOT_ENOUGH_OUTPUT_ARGS
 }exit_type;
 
 
@@ -41,7 +42,7 @@ int main(int argc, char** argv){
 		std::cout << "Input type not supported yet\n";
 		return EXIT_INPUT_TYPE_NOT_SUPPORTED;
 	}
-	
+	unsigned long long iterations = powl(2, (long unsigned)inputs);
 	std::vector<boost::dynamic_bitset<>> output_arr; 
 	if(input_opt == 0){
 		/* Process Input type 0 */
@@ -49,6 +50,34 @@ int main(int argc, char** argv){
 			output_arr.push_back(boost::dynamic_bitset<>(std::string((char*)argv[INPUT_DATA+i])));
 		}
 	}		
+
+	if(input_opt == 1){
+		/* Process Input type 1*/
+		int args_to_check = INPUT_DATA;
+		int num_outputs_recieved = 0;
+		while(args_to_check < argc){
+			if(strcmp(argv[args_to_check], "-o") == 0){
+				/* -o flag indicates the following are outputs*/
+				args_to_check++;
+				output_arr.push_back(boost::dynamic_bitset<>(iterations));
+				while (args_to_check < argc && strcmp(argv[args_to_check], "-o"))
+				{
+					/* code */
+					output_arr[num_outputs_recieved].set(iterations-std::stoi(argv[args_to_check])-1);
+					args_to_check++;
+				}
+				
+				num_outputs_recieved++;
+				std::cout << output_arr[num_outputs_recieved-1] << "\n";
+				
+			}else{
+				std::cout << "Error: NOT ENOUGH OUTPUT ARGS\n";
+				return EXIT_NOT_ENOUGH_OUTPUT_ARGS;
+			}
+		}
+	}
+
+
 
 	if(module_name.empty()) module_name = std::string("default");
 	std::string output_tb_file_name = std::string("tb_").append(module_name).append(".v");
@@ -109,7 +138,6 @@ int main(int argc, char** argv){
 	}
 	output_tb_file << "\t" << "#50;\n";
 	
-	unsigned long long iterations = powl(2, (long unsigned)inputs);
 	for(long long unsigned i = 0; i< iterations;i++){
 		output_tb_file << "\n";
 		for(int j = 0; j<inputs;j++){
@@ -123,6 +151,8 @@ int main(int argc, char** argv){
 		}
 		output_tb_file << "\t" << "#50;\n";
 	}
+
+	output_tb_file << "\n\n\n\tend\n\n\nendmodule";
 	output_tb_file.close();
 
 	return EXIT_SUCCESSFUL;
